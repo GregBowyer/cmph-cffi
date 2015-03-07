@@ -107,5 +107,5 @@ Please see `LICENSE <https://github.com/URXtech/cmph-cffi/blob/master/LICENSE>`_
     :alt: Latest version released on PyPi
 
 .. |build| image:: https://img.shields.io/travis/URXtech/cmph-cffi/master.svg?style=flat-square&label=unix%20build
-    :target: http://travis-ci.org/URXtech.cmph-cffi
+    :target: http://travis-ci.org/URXtech/cmph-cffi
     :alt: Build status 
