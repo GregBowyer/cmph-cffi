@@ -8,6 +8,7 @@ from glob import glob
 from collections import Iterable
 import tempfile
 import logging
+import six
 
 logger = logging.getLogger(__name__)
 
@@ -196,7 +197,10 @@ class MPH(object):
             The code for the given item
 
         """
-        return self.lookup(key)
+        if six.PY3 and type(key) in six.string_types:
+            return self.lookup(key.encode('utf8'))
+        else:
+            return self.lookup(key)
 
     def __del__(self):
         _cmph.cmph_destroy(self._mph)

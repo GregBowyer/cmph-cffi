@@ -55,7 +55,7 @@ setup(
     url='http://github.com/URXtech/cmph-cffi/',
     packages=['cmph'],
     tests_require=['pytest'],
-    install_requires=['cffi>=0.8'],
+    install_requires=['cffi>=0.8', 'six'],
     cmdclass={
         'build': CFFIBuild,
         'install': CFFIInstall,
