@@ -418,19 +418,19 @@ def generate_hash(input, algorithm='chd_ph', hash_fns=(), chd_keys_per_bin=1,
     if algorithm in ('chd', 'chd_ph'):
         if chd_load_factor is not None:
             _range_check('chd_load_factor', 0, chd_load_factor)
-            _cmph._cmph_set_graphsize(config, chd_load_factor)
+            _cmph._cmph_config_set_graphsize(config, chd_load_factor)
         _cmph.cmph_config_set_keys_per_bin(config, chd_keys_per_bin)
         _cmph.cmph_config_set_b(config, chd_avg_keys_per_bucket)
         if num_graph_vertices:
-            _cmph.cmph_set_graphsize(config, num_graph_vertices)
+            _cmph.cmph_config_set_graphsize(config, num_graph_vertices)
     elif algorithm == 'bdz':
         _cmph.cmph_config_set_b(config, bdz_precomputed_rank)
     elif algorithm == 'brz':
         _cmph.cmph_config_set_b(config, brz_max_keys_per_bucket)
         if not brz_temp_dir:
             brz_temp_dir = tempfile.mkdtemp(suffix='cmph')
-        _cmph.cmph_set_tmp_dir(config, brz_temp_dir)
-        _cmph.cmph_set_memory_availability(config, brz_memory_size)
+        _cmph.cmph_config_set_tmp_dir(config, brz_temp_dir)
+        _cmph.cmph_config_set_memory_availability(config, brz_memory_size)
     elif algorithm == 'bmz':
         if num_graph_vertices:
             _range_check('num_graph_vertices', 1, num_graph_vertices)
@@ -438,15 +438,15 @@ def generate_hash(input, algorithm='chd_ph', hash_fns=(), chd_keys_per_bin=1,
                 logging.warn("num_graph_vertices for bmz was given "
                              "as >= 2, but forced to 1.15")
                 num_graph_vertices = 1.15
-            _cmph.cmph_set_graphsize(config, num_graph_vertices)
+            _cmph.cmph_config_set_graphsize(config, num_graph_vertices)
     elif algorithm == 'chm':
         if num_graph_vertices is not None:
             _range_check('num_graph_vertices', 1, num_graph_vertices)
-            _cmph.cmph_set_graphsize(config, num_graph_vertices)
+            _cmph.cmph_config_set_graphsize(config, num_graph_vertices)
     elif algorithm == 'fch':
         if fch_bits_per_key:
             _range_check('fch_bits_per_key', 0, fch_bits_per_key)
-            _cmph.cmph_set_graphsize(config, fch_bits_per_key)
+            _cmph.cmph_config_set_graphsize(config, fch_bits_per_key)
 
     try:
         return MPH(_cmph.cmph_new(config))
