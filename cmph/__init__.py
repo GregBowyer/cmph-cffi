@@ -6,6 +6,7 @@ from os.path import join as pthjoin
 from os.path import relpath
 from glob import glob
 from collections import Iterable
+import tempfile
 import logging
 
 ffi = FFI()
@@ -194,7 +195,7 @@ def _range_check(name, lower, value, upper=None):
             raise ValueError("Invalid parameter for %s" % name)
 
 
-def generate_hash(input, algorithm='chd_ph', hash_fns=[], chd_keys_per_bin=1,
+def generate_hash(input, algorithm='chd_ph', hash_fns=(), chd_keys_per_bin=1,
                   chd_load_factor=None, fch_bits_per_key=None,
                   num_graph_vertices=None, brz_memory_size=8,
                   brz_temp_dir=None, brz_max_keys_per_bucket=128,
@@ -438,13 +439,13 @@ def generate_hash(input, algorithm='chd_ph', hash_fns=[], chd_keys_per_bin=1,
             _cmph.cmph_io_nlfile_adapter_destroy(source)
 
 
-def load_hash(input):
+def load_hash(existing_mph):
     """Load a Minimal Perfect Hash (MPH)
     Given an input stream, this will load a minimal perfect hash
 
     Parameters
     ----------
-    input : file_like
+    existing_mph : file_like
         An input stream that is file like, and able to load
         a preexisting MPH
 
@@ -459,6 +460,6 @@ def load_hash(input):
     MPH
         A MPH wrapper class
     """
-    assert hasattr(input, 'fileno'), "Input is not a file ?"
-    _mph = _cmph.cmph_load(input)
+    assert hasattr(existing_mph, 'fileno'), "Input is not a file ?"
+    _mph = _cmph.cmph_load(existing_mph)
     return MPH(_mph)
