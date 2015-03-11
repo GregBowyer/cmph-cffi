@@ -25,25 +25,6 @@ class CFFIInstall(install):
         install.finalize_options(self)
 
 
-class PyTest(TestCommand):
-    user_options = [('pytest-args=', 'a', '--cov-report')]
-
-    def initialize_options(self):
-        TestCommand.initialize_options(self)
-        self.pytest_args = []
-
-    def finalize_options(self):
-        TestCommand.finalize_options(self)
-        self.test_args = []
-        self.test_suite = True
-
-    def run_tests(self):
-        #import here, cause outside the eggs aren't loaded
-        import pytest
-        errno = pytest.main(self.pytest_args)
-        sys.exit(errno)
-
-
 setup(
     name='cmph-cffi',
     version=VERSION_STR,
@@ -54,17 +35,11 @@ setup(
     author_email='gbowyer@fastmail.co.uk & venkatesh@urx.com',
     url='http://github.com/URXtech/cmph-cffi/',
     packages=['cmph'],
-    tests_require=[
-        'pytest',
-        'pytest-quickcheck',
-        'pytest-capturelog',
-        'pytest-cov'
-    ],
+    tests_require=['tox'],
     install_requires=['cffi>=0.8', 'six'],
     cmdclass={
         'build': CFFIBuild,
         'install': CFFIInstall,
-        'test': PyTest,
     },
     setup_requires=['cffi>=0.8'],
     include_package_data=False,

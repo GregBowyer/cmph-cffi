@@ -395,6 +395,9 @@ def generate_hash(input, algorithm='chd_ph', hash_fns=(), chd_keys_per_bin=1,
         if any(fn not in _HASH_FNS.keys() for fn in hash_fns):
             raise ValueError("Invalid internal hash fn")
 
+        if not all(bool(fn) for fn in hash_fns):
+            raise ValueError("Invalid internal hash fn")
+
     _range_check('chd_keys_per_bin', 1, chd_keys_per_bin, 128)
     _range_check('brz_memory_size', 1, brz_memory_size)
     _range_check('brz_max_keys_per_bucket', 64,

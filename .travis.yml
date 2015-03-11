@@ -1,20 +1,18 @@
 language: python
-python:
-    - 2.6
-    - 2.7
-    - 3.2
-    - 3.3
-    - 3.4
-    - "pypy"
 before_install:
     - sudo pip install codecov
 install:
+    - sudo apt-get install pypy
     - pip install cffi
-    - pip install python-coveralls
 script:
-    - python setup.py test
     - python setup.py install
-    - coverage run --source=cmph setup.py test
-    - coverage report -m
+    - tox
 after_success:
     codecov
+env:
+  - TOXENV=py27
+  - TOXENV=py32
+  - TOXENV=py33
+  - TOXENV=py34
+  - TOXENV=pypy
+  - TOXENV=pypy3
