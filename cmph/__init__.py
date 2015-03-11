@@ -203,6 +203,7 @@ class MPH(object):
             return self.lookup(key)
 
     def __del__(self):
+        assert self._mph, "There is no MPH ?"
         _cmph.cmph_destroy(self._mph)
 
 

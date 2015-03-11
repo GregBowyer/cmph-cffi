@@ -24,6 +24,9 @@ def test_simple_usage(tmpdir):
 
 @pytest.mark.parametrize('algo', cmph._ALGOS.keys())
 def test_each_algo_defaults(tmpdir, algo):
+    if algo == 'brz':
+        pytest.skip("brz is known to segfault on some machines")
+
     with open(_words) as test_input:
         mph = cmph.generate_hash(test_input, algorithm=algo)
 
@@ -38,3 +41,7 @@ def test_each_algo_defaults(tmpdir, algo):
     with open(_words) as test_input:
         for word in test_input:
             assert mph(word) == mph2(word)
+
+    # Check that nothing untoward happens in __del__
+    del mph
+    del mph2
