@@ -9,6 +9,8 @@ from collections import Iterable
 import tempfile
 import logging
 
+logger = logging.getLogger(__name__)
+
 ffi = FFI()
 
 ffi.cdef("""
@@ -71,6 +73,9 @@ ffi.cdef("""
     cmph_t *cmph_load(FILE *f);
 
     cmph_uint32 cmph_search(cmph_t *mphf, const char *key, cmph_uint32 keylen);
+
+    void _cmph_setup_py_logger(void (*_py_logger)(int, char*));
+
 """)
 ffi.C = ffi.dlopen(None)
 
@@ -78,9 +83,20 @@ path = dirname(__file__)
 sources = [relpath(src) for src in
            glob(pthjoin(path, '*.c'))]
 
+
+@ffi.callback("void(int, char*)")
+def _cmph_py_logger(level, message):
+    log_fn = {
+        0: logger.error,
+        1: logger.warn,
+        2: logger.info,
+    }.get(level, logger.debug)
+    log_fn(ffi.string(message).strip())
+
 _cmph = ffi.verify('''
 #include <cmph.h>
 ''', sources=sources, include_dirs=[path])
+_cmph._cmph_setup_py_logger(_cmph_py_logger)
 
 _HASH_FNS = {
     'jenkins': _cmph.CMPH_HASH_JENKINS,
