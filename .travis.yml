@@ -6,5 +6,13 @@ python:
     - 3.3
     - 3.4
     - "pypy"
-install: pip install cffi
-script: python setup.py test
+install:
+    - pip install cffi
+    - pip install python-coveralls
+script:
+    - python setup.py test
+    - python setup.py install
+    - coverage run --source=cmph setup.py test
+    - coverage report -m
+after_script:
+    coveralls

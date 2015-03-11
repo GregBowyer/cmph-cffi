@@ -7,7 +7,7 @@ These bindings provide python with the ability to create and use
 
 -----
 
-|pypi| |build|
+|pypi| |build| |coverage|
 
 -----
 
@@ -106,6 +106,10 @@ Please see `LICENSE <https://github.com/URXtech/cmph-cffi/blob/master/LICENSE>`_
     :target: https://pypi.python.org/pypi/cmph-cffi
     :alt: Latest version released on PyPi
 
-.. |build| image:: https://img.shields.io/travis/URXtech/cmph-cffi/master.svg?style=flat-square&label=unix%20build
+.. |build| image:: https://img.shields.io/travis/URXtech/cmph-cffi/master.svg?style=flat-square&label=build
     :target: http://travis-ci.org/URXtech/cmph-cffi
     :alt: Build status 
+
+.. |coverage| image:: https://img.shields.io/coveralls/URXtech/cmph-cffi/master.svg?style=flat-square&label=coverage
+    :target: https://coveralls.io/r/URXtech/cmph-cffi
+    :alt: Coverage

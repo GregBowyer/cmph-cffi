@@ -26,7 +26,7 @@ class CFFIInstall(install):
 
 
 class PyTest(TestCommand):
-    user_options = [('pytest-args=', 'a', '')]
+    user_options = [('pytest-args=', 'a', '--cov-report')]
 
     def initialize_options(self):
         TestCommand.initialize_options(self)
@@ -54,12 +54,17 @@ setup(
     author_email='gbowyer@fastmail.co.uk & venkatesh@urx.com',
     url='http://github.com/URXtech/cmph-cffi/',
     packages=['cmph'],
-    tests_require=['pytest'],
+    tests_require=['pytest', 'pytest-capturelog', 'python-coveralls'],
     install_requires=['cffi>=0.8', 'six'],
     cmdclass={
         'build': CFFIBuild,
         'install': CFFIInstall,
         'test': PyTest,
+    },
+    entry_points={
+        'console_scripts': [
+            'coveralls = coveralls:wear',
+        ],
     },
     setup_requires=['cffi>=0.8'],
     include_package_data=False,
