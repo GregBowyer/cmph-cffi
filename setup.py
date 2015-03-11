@@ -1,6 +1,8 @@
+import sys
 from setuptools import setup
 from setuptools.command.install import install
 from distutils.command.build import build
+from setuptools.command.test import test as TestCommand
 
 VERSION = (0, 1, 0)
 VERSION_STR = '.'.join([str(x) for x in VERSION])
@@ -23,6 +25,25 @@ class CFFIInstall(install):
         install.finalize_options(self)
 
 
+class PyTest(TestCommand):
+    user_options = [('pytest-args=', 'a', '')]
+
+    def initialize_options(self):
+        TestCommand.initialize_options(self)
+        self.pytest_args = []
+
+    def finalize_options(self):
+        TestCommand.finalize_options(self)
+        self.test_args = []
+        self.test_suite = True
+
+    def run_tests(self):
+        #import here, cause outside the eggs aren't loaded
+        import pytest
+        errno = pytest.main(self.pytest_args)
+        sys.exit(errno)
+
+
 setup(
     name='cmph-cffi',
     version=VERSION_STR,
@@ -33,12 +54,12 @@ setup(
     author_email='gbowyer@fastmail.co.uk & venkatesh@urx.com',
     url='http://github.com/URXtech/cmph-cffi/',
     packages=['cmph'],
-    tests_require=['nose>=1.0'],
-    test_suite='nose.collector',
+    tests_require=['pytest'],
     install_requires=['cffi>=0.8'],
     cmdclass={
         'build': CFFIBuild,
         'install': CFFIInstall,
+        'test': PyTest,
     },
     setup_requires=['cffi>=0.8'],
     include_package_data=False,
