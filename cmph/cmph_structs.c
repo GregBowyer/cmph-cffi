@@ -11,7 +11,6 @@ cmph_config_t *__config_new(cmph_io_adapter_t *key_source)
 	if (mph == NULL) return NULL;
 	memset(mph, 0, sizeof(cmph_config_t));
 	mph->key_source = key_source;
-	mph->verbosity = 0;
 	mph->data = NULL;
 	mph->c = 0;
 	return mph;

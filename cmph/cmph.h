@@ -8,7 +8,6 @@
 extern "C"
 {
 #endif
-
 #include "cmph_types.h"
 
 typedef struct __config_t cmph_config_t;

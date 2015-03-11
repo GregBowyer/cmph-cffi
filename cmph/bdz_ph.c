@@ -11,6 +11,8 @@
 #include <string.h>
 //#define DEBUG
 #include "debug.h"
+#include "logging.h"
+
 #define UNASSIGNED 3
 #define NULL_EDGE 0xffffffff
 
@@ -265,10 +267,7 @@ cmph_t *bdz_ph_new(cmph_config_t *mph, double c)
 
 	// Mapping step
 	iterations = 100;
-	if (mph->verbosity)
-	{
-		fprintf(stderr, "Entering mapping step for mph creation of %u keys with graph sized %u\n", bdz_ph->m, bdz_ph->n);
-	}
+	cmph_logger.info("Entering mapping step for mph creation of %u keys with graph sized %u\n", bdz_ph->m, bdz_ph->n);
 	while(1)
 	{
 		int ok;
@@ -282,10 +281,7 @@ cmph_t *bdz_ph_new(cmph_config_t *mph, double c)
 			hash_state_destroy(bdz_ph->hl);
 			bdz_ph->hl = NULL;
 			DEBUGP("%u iterations remaining\n", iterations);
-			if (mph->verbosity)
-			{
-				fprintf(stderr, "acyclic graph creation failure - %u iterations remaining\n", iterations);
-			}
+			cmph_logger.info("acyclic graph creation failure - %u iterations remaining\n", iterations);
 			if (iterations == 0) break;
 		}
 		else break;
@@ -300,19 +296,13 @@ cmph_t *bdz_ph_new(cmph_config_t *mph, double c)
 	}
 	bdz_ph_partial_free_graph3(&graph3);
 	// Assigning step
-	if (mph->verbosity)
-	{
-		fprintf(stderr, "Entering assigning step for mph creation of %u keys with graph sized %u\n", bdz_ph->m, bdz_ph->n);
-	}
+    cmph_logger.info("Entering assigning step for mph creation of %u keys with graph sized %u\n", bdz_ph->m, bdz_ph->n);
 	assigning(bdz_ph, &graph3, edges);
 
 	bdz_ph_free_queue(&edges);
 	bdz_ph_free_graph3(&graph3);
 
-	if (mph->verbosity)
-	{
-		fprintf(stderr, "Starting optimization step\n");
-	}
+	cmph_logger.info("Starting optimization step\n");
 
 	bdz_ph_optimization(bdz_ph);
 
@@ -332,11 +322,7 @@ cmph_t *bdz_ph_new(cmph_config_t *mph, double c)
 	mphf->data = bdz_phf;
 	mphf->size = bdz_ph->n;
 
-	DEBUGP("Successfully generated minimal perfect hash\n");
-	if (mph->verbosity)
-	{
-		fprintf(stderr, "Successfully generated minimal perfect hash function\n");
-	}
+	cmph_logger.info("Successfully generated minimal perfect hash function\n");
 
 	#ifdef CMPH_TIMING
 	register cmph_uint32 space_usage = bdz_ph_packed_size(mphf)*8;

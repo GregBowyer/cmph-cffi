@@ -13,8 +13,10 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <stdarg.h>
 // #define DEBUG
 #include "debug.h"
+#include "logging.h"
 
 const char *cmph_names[] = {"bmz", "bmz8", "chm", "brz", "fch", "bdz", "bdz_ph", "chd_ph", "chd", NULL };
 
@@ -290,6 +292,7 @@ void cmph_io_vector_adapter_destroy(cmph_io_adapter_t * key_source)
 	cmph_io_vector_destroy(key_source);
 }
 
+
 cmph_config_t *cmph_config_new(cmph_io_adapter_t *key_source)
 {
 	cmph_config_t *mph = NULL;
@@ -470,9 +473,20 @@ void cmph_config_destroy(cmph_config_t *mph)
 	}
 }
 
+/**
+* This is a left over interface from cmph 2.0, but its simple to support
+* the new API
+*/
 void cmph_config_set_verbosity(cmph_config_t *mph, cmph_uint32 verbosity)
 {
-	mph->verbosity = verbosity;
+	if (verbosity > cmph_log_level_ERROR) {
+		verbosity = cmph_log_level_ERROR;
+	}
+
+	if (verbosity < cmph_log_level_DEBUG) {
+		verbosity = cmph_log_level_DEBUG;
+	}
+	cmph_logger.verbosity = verbosity;
 }
 
 void cmph_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)

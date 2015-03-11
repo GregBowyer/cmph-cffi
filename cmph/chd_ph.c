@@ -15,6 +15,7 @@
 
 //#define DEBUG
 #include "debug.h"
+#include "logging.h"
 
 // NO_ELEMENT is equivalent to null pointer
 #ifndef NO_ELEMENT
@@ -679,12 +680,9 @@ cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 		space_lower_bound = chd_ph_space_lower_bound(chd_ph->m, chd_ph->n);
 	}
 
-	if(mph->verbosity)
-	{
-		fprintf(stderr, "space lower bound is %.3f bits per key\n", space_lower_bound);
-	}
+	cmph_logger.info("space lower bound is %.3f bits per key\n", space_lower_bound);
 
-       	// We allocate the working tables
+	// We allocate the working tables
 	buckets = chd_ph_bucket_new(chd_ph->nbuckets);
 	items   = (chd_ph_item_t *) calloc(chd_ph->m, sizeof(chd_ph_item_t));
 
@@ -702,36 +700,24 @@ cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 	while(1)
 	{
 		iterations --;
-		if (mph->verbosity)
-		{
-			fprintf(stderr, "Starting mapping step for mph creation of %u keys with %u bins\n", chd_ph->m, chd_ph->n);
-		}
+		cmph_logger.info("Starting mapping step for mph creation of %u keys with %u bins\n", chd_ph->m, chd_ph->n);
 
 		if(!chd_ph_mapping(mph, buckets, items, &max_bucket_size))
 		{
-			if (mph->verbosity)
-			{
-				fprintf(stderr, "Failure in mapping step\n");
-			}
+			cmph_logger.info("Failure in mapping step\n");
 			failure = 1;
 			goto cleanup;
 		}
 
-		if (mph->verbosity)
-		{
-			fprintf(stderr, "Starting ordering step\n");
-		}
+		cmph_logger.info("Starting ordering step\n");
 		if(sorted_lists)
 		{
 			free(sorted_lists);
 		}
 
-        	sorted_lists = chd_ph_ordering(&buckets, &items, chd_ph->nbuckets, chd_ph->m, max_bucket_size);
+		sorted_lists = chd_ph_ordering(&buckets, &items, chd_ph->nbuckets, chd_ph->m, max_bucket_size);
 
-		if (mph->verbosity)
-		{
-			fprintf(stderr, "Starting searching step\n");
-		}
+		cmph_logger.info("Starting searching step\n");
 
 		searching_success = chd_ph_searching(chd_ph, buckets, items, max_bucket_size, sorted_lists, max_probes, disp_table);
 		if(searching_success) break;
@@ -744,10 +730,7 @@ cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 		if(iterations == 0)
 		{
 			// Cleanup memory
-			if (mph->verbosity)
-			{
-				fprintf(stderr, "Failure because the max trials was exceeded\n");
-			}
+			cmph_logger.warn("Failure because the max trials was exceeded\n");
 			failure = 1;
 			goto cleanup;
 		};
@@ -765,10 +748,7 @@ cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 	}
 	#endif
 
-	if (mph->verbosity)
-	{
-		fprintf(stderr, "Starting compressing step\n");
-	}
+	cmph_logger.info("Starting compressing step\n");
 
 	if(chd_ph->cs)
 	{
@@ -813,11 +793,7 @@ cleanup:
 	mphf->data = chd_phf;
 	mphf->size = chd_ph->n;
 
-	DEBUGP("Successfully generated minimal perfect hash\n");
-	if (mph->verbosity)
-	{
-		fprintf(stderr, "Successfully generated minimal perfect hash function\n");
-	}
+	cmph_logger.info("Successfully generated minimal perfect hash function\n");
 
 	#ifdef CMPH_TIMING
 	register cmph_uint32 space_usage = chd_ph_packed_size(mphf)*8;

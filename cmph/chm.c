@@ -69,10 +69,7 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 	chm->hashes = (hash_state_t **)malloc(sizeof(hash_state_t *)*3);
 	for(i = 0; i < 3; ++i) chm->hashes[i] = NULL;
 	//Mapping step
-	if (mph->verbosity)
-	{
-		fprintf(stderr, "Entering mapping step for mph creation of %u keys with graph sized %u\n", chm->m, chm->n);
-	}
+	cmph_logger.info("Entering mapping step for mph creation of %u keys with graph sized %u\n", chm->m, chm->n);
 	while(1)
 	{
 		int ok;
@@ -87,10 +84,7 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 			hash_state_destroy(chm->hashes[1]);
 			chm->hashes[1] = NULL;
 			DEBUGP("%u iterations remaining\n", iterations);
-			if (mph->verbosity)
-			{
-				fprintf(stderr, "Acyclic graph creation failure - %u iterations remaining\n", iterations);
-			}
+           cmph_logger.info("Acyclic graph creation failure - %u iterations remaining\n", iterations);
 			if (iterations == 0) break;
 		}
 		else break;
@@ -102,10 +96,7 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 	}
 
 	//Assignment step
-	if (mph->verbosity)
-	{
-		fprintf(stderr, "Starting assignment step\n");
-	}
+   cmph_logger.info("Starting assignment step\n");
 	DEBUGP("Assignment step\n");
  	visited = (cmph_uint8 *)malloc((size_t)(chm->n/8 + 1));
 	memset(visited, 0, (size_t)(chm->n/8 + 1));
@@ -114,7 +105,7 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 	assert(chm->g);
 	for (i = 0; i < chm->n; ++i)
 	{
-	        if (!GETBIT(visited,i))
+		if (!GETBIT(visited,i))
 		{
 			chm->g[i] = 0;
 			chm_traverse(chm, visited, i);
@@ -135,11 +126,7 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 	chmf->m = chm->m;
 	mphf->data = chmf;
 	mphf->size = chm->m;
-	DEBUGP("Successfully generated minimal perfect hash\n");
-	if (mph->verbosity)
-	{
-		fprintf(stderr, "Successfully generated minimal perfect hash function\n");
-	}
+	cmph_logger.info("Successfully generated minimal perfect hash function\n");
 	return mphf;
 }
 
@@ -183,7 +170,7 @@ static int chm_gen_edges(cmph_config_t *mph)
 		if (h1 == h2) if (++h2 >= chm->n) h2 = 0;
 		if (h1 == h2)
 		{
-			if (mph->verbosity) fprintf(stderr, "Self loop for key %u\n", e);
+			cmph_logger.warn("Self loop for key %u\n", e);
 			mph->key_source->dispose(mph->key_source->data, key, keylen);
 			return 0;
 		}
@@ -192,7 +179,9 @@ static int chm_gen_edges(cmph_config_t *mph)
 		graph_add_edge(chm->graph, h1, h2);
 	}
 	cycles = graph_is_cyclic(chm->graph);
-	if (mph->verbosity && cycles) fprintf(stderr, "Cyclic graph generated\n");
+	if (cycles) {
+		cmph_logger.warn("Cyclic graph generated\n");
+	}
 	DEBUGP("Looking for cycles: %u\n", cycles);
 
 	return ! cycles;

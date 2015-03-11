@@ -1,7 +1,7 @@
 #ifndef __CMPH_COMPRESSED_SEQ_H__
 #define __CMPH_COMPRESSED_SEQ_H__
 
-#include"select.h"
+#include "select.h"
 
 struct _compressed_seq_t
 {

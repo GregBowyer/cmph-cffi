@@ -67,7 +67,7 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 
 	if (mph->key_source->nkeys >= 256)
 	{
-		if (mph->verbosity) fprintf(stderr, "The number of keys in BMZ8 must be lower than 256.\n");
+		cmph_logger.error("The number of keys in BMZ8 must be lower than 256.\n");
 		return NULL;
 	}
 	if (c == 0) c = 1.15; // validating restrictions over parameter c.
@@ -87,10 +87,7 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	  cmph_uint8 biggest_g_value = 0;
 	  cmph_uint8 biggest_edge_value = 1;
 	  iterations = 100;
-	  if (mph->verbosity)
-	  {
-		fprintf(stderr, "Entering mapping step for mph creation of %u keys with graph sized %u\n", bmz8->m, bmz8->n);
-	  }
+	  cmph_logger.info("Entering mapping step for mph creation of %u keys with graph sized %u\n", bmz8->m, bmz8->n);
 	  while(1)
 	  {
 		int ok;
@@ -108,10 +105,7 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 			hash_state_destroy(bmz8->hashes[1]);
 			bmz8->hashes[1] = NULL;
 			DEBUGP("%u iterations remaining\n", iterations);
-			if (mph->verbosity)
-			{
-				fprintf(stderr, "simple graph creation failure - %u iterations remaining\n", iterations);
-			}
+			cmph_logger.info("simple graph creation failure - %u iterations remaining\n", iterations);
 			if (iterations == 0) break;
 		}
 		else break;
@@ -123,19 +117,12 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	  }
 
 	  // Ordering step
-	  if (mph->verbosity)
-	  {
-		fprintf(stderr, "Starting ordering step\n");
-	  }
+	  cmph_logger.info("Starting ordering step\n");
 
 	  graph_obtain_critical_nodes(bmz8->graph);
 
 	  // Searching step
-	  if (mph->verbosity)
-	  {
-		fprintf(stderr, "Starting Searching step.\n");
-		fprintf(stderr, "\tTraversing critical vertices.\n");
-	  }
+	  cmph_logger.info("Starting Searching step. - Traversing critical vertices.\n");
 	  DEBUGP("Searching step\n");
 	  visited = (cmph_uint8 *)malloc((size_t)bmz8->n/8 + 1);
 	  memset(visited, 0, (size_t)bmz8->n/8 + 1);
@@ -155,16 +142,13 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	  }
 	  if(!restart_mapping)
 	  {
-	        if (mph->verbosity)
-	        {
-		  fprintf(stderr, "\tTraversing non critical vertices.\n");
-		}
+		cmph_logger.info("Traversing non critical vertices.\n");
 		bmz8_traverse_non_critical_nodes(bmz8, used_edges, visited); // non_critical_nodes
 	  }
 	  else
 	  {
  	        iterations_map--;
-		if (mph->verbosity) fprintf(stderr, "Restarting mapping step. %u iterations remaining.\n", iterations_map);
+		cmph_logger.info("Restarting mapping step. %u iterations remaining.\n", iterations_map);
 	  }
 
 	  free(used_edges);
@@ -188,11 +172,7 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	bmz8f->m = bmz8->m;
 	mphf->data = bmz8f;
 	mphf->size = bmz8->m;
-	DEBUGP("Successfully generated minimal perfect hash\n");
-	if (mph->verbosity)
-	{
-		fprintf(stderr, "Successfully generated minimal perfect hash function\n");
-	}
+	cmph_logger.info("Successfully generated minimal perfect hash function\n");
 	return mphf;
 }
 
@@ -440,7 +420,7 @@ static int bmz8_gen_edges(cmph_config_t *mph)
 		if (h1 == h2) if (++h2 >= bmz8->n) h2 = 0;
 		if (h1 == h2)
 		{
-			if (mph->verbosity) fprintf(stderr, "Self loop for key %u\n", e);
+			cmph_logger.debug("Self loop for key %u\n", e);
 			mph->key_source->dispose(mph->key_source->data, key, keylen);
 			return 0;
 		}
@@ -448,7 +428,7 @@ static int bmz8_gen_edges(cmph_config_t *mph)
 		mph->key_source->dispose(mph->key_source->data, key, keylen);
 //		fprintf(stderr, "key = %s -- dispose BMZ\n", key);
 		multiple_edges = graph_contains_edge(bmz8->graph, h1, h2);
-		if (mph->verbosity && multiple_edges) fprintf(stderr, "A non simple graph was generated\n");
+		cmph_logger.warn("A non simple graph was generated\n");
 		if (multiple_edges) return 0; // checking multiple edge restriction.
 		graph_add_edge(bmz8->graph, h1, h2);
 	}

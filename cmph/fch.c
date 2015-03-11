@@ -265,22 +265,13 @@ cmph_t *fch_new(cmph_config_t *mph, double c)
 	fch->g = NULL;
 	do
 	{	
-		if (mph->verbosity)
-		{
-			fprintf(stderr, "Entering mapping step for mph creation of %u keys\n", fch->m);
-		}
+		cmph_logger.info("Entering mapping step for mph creation of %u keys\n", fch->m);
 		if (buckets) fch_buckets_destroy(buckets);
 		buckets = mapping(mph);
-		if (mph->verbosity)
-		{
-			fprintf(stderr, "Starting ordering step\n");
-		}
+		cmph_logger.info("Starting ordering step\n");
 		if (sorted_indexes) free (sorted_indexes);
 		sorted_indexes = ordering(buckets);
-		if (mph->verbosity)
-		{
-			fprintf(stderr, "Starting searching step.\n");
-		}
+		cmph_logger.info("Starting searching step.\n");
 		restart_mapping = searching(fch, buckets, sorted_indexes);
 		iterations--;
 
@@ -304,11 +295,7 @@ cmph_t *fch_new(cmph_config_t *mph, double c)
 	fchf->m = fch->m;
 	mphf->data = fchf;
 	mphf->size = fch->m;
-	//DEBUGP("Successfully generated minimal perfect hash\n");
-	if (mph->verbosity)
-	{
-		fprintf(stderr, "Successfully generated minimal perfect hash function\n");
-	}
+	cmph_logger.info("Successfully generated minimal perfect hash function\n");
 	return mphf;
 }
 

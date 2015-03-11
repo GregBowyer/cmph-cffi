@@ -86,13 +86,9 @@ cmph_t *chd_new(cmph_config_t *mph, double c)
 	ELAPSED_TIME_IN_SECONDS(&construction_time_begin);
 	#endif
 
-	cmph_config_set_verbosity(chd->chd_ph, mph->verbosity);
 	cmph_config_set_graphsize(chd->chd_ph, c);
 
-	if (mph->verbosity)
-	{
-		fprintf(stderr, "Generating a CHD_PH perfect hash function with a load factor equal to %.3f\n", c);
-	}
+	cmph_logger.info("Generating a CHD_PH perfect hash function with a load factor equal to %.3f\n", c);
 
 	chd_phf = cmph_new(chd->chd_ph);
 
@@ -112,11 +108,7 @@ cmph_t *chd_new(cmph_config_t *mph, double c)
 
 	cmph_destroy(chd_phf);
 
-
-	if (mph->verbosity)
-	{
-		fprintf(stderr, "Compressing the range of the resulting CHD_PH perfect hash function\n");
-	}
+	cmph_logger.info("Compressing the range of the resulting CHD_PH perfect hash function\n");
 
 	compressed_rank_init(&cr);
 	nbins = chd_ph->n;
@@ -158,11 +150,7 @@ cmph_t *chd_new(cmph_config_t *mph, double c)
 	mphf->data = chdf;
 	mphf->size = nkeys;
 
-	DEBUGP("Successfully generated minimal perfect hash\n");
-	if (mph->verbosity)
-	{
-		fprintf(stderr, "Successfully generated minimal perfect hash function\n");
-	}
+	cmph_logger.info("Successfully generated minimal perfect hash function\n");
 	#ifdef CMPH_TIMING
 	ELAPSED_TIME_IN_SECONDS(&construction_time);
 	register cmph_uint32 space_usage =  chd_packed_size(mphf)*8;

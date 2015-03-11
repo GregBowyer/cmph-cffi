@@ -150,10 +150,7 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 	brz->size   = (cmph_uint8 *) calloc((size_t)brz->k, sizeof(cmph_uint8));
 
 	// Clustering the keys by graph id.
-	if (mph->verbosity)
-	{
-		fprintf(stderr, "Partioning the set of keys.\n");
-	}
+	cmph_logger.info("Partioning the set of keys.\n");
 
 	while(1)
 	{
@@ -168,10 +165,7 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 			hash_state_destroy(brz->h0);
 			brz->h0 = NULL;
 			DEBUGP("%u iterations remaining to create the graphs in a external file\n", iterations);
-			if (mph->verbosity)
-			{
-				fprintf(stderr, "Failure: A graph with more than 255 keys was created - %u iterations remaining\n", iterations);
-			}
+			cmph_logger.warn("Failure: A graph with more than 255 keys was created - %u iterations remaining\n", iterations);
 			if (iterations == 0) break;
 		}
 		else break;
@@ -211,11 +205,7 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 	brzf->algo = brz->algo;
 	mphf->data = brzf;
 	mphf->size = brz->m;
-	DEBUGP("Successfully generated minimal perfect hash\n");
-	if (mph->verbosity)
-	{
-		fprintf(stderr, "Successfully generated minimal perfect hash function\n");
-	}
+	cmph_logger.info("Successfully generated minimal perfect hash function\n");
 	return mphf;
 }
 
@@ -252,10 +242,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 		/* Buffers management */
 		if (memory_usage + keylen + sizeof(keylen) > brz->memory_availability) // flush buffers
 		{
-			if(mph->verbosity)
-			{
-				fprintf(stderr, "Flushing  %u\n", nkeys_in_buffer);
-			}
+			cmph_logger.debug("Flushing  %u\n", nkeys_in_buffer);
 			cmph_uint32 value = buckets_size[0];
 			cmph_uint32 sum = 0;
 			cmph_uint32 keylen1 = 0;
@@ -313,10 +300,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 	}
 	if (memory_usage != 0) // flush buffers
 	{
-		if(mph->verbosity)
-		{
-			fprintf(stderr, "Flushing  %u\n", nkeys_in_buffer);
-		}
+		cmph_logger.debug("Flushing  %u\n", nkeys_in_buffer);
 		cmph_uint32 value = buckets_size[0];
 		cmph_uint32 sum = 0;
 		cmph_uint32 keylen1 = 0;
@@ -360,10 +344,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 	free(buckets_size);
 	if(nflushes > 1024) return 0; // Too many files generated.
 	// mphf generation
-	if(mph->verbosity)
-	{
-		fprintf(stderr, "\nMPHF generation \n");
-	}
+	cmph_logger.info("MPHF generation \n");
 	/* Starting to dump to disk the resultant MPHF: __cmph_dump function */
 	nbytes = fwrite(cmph_names[CMPH_BRZ], (size_t)(strlen(cmph_names[CMPH_BRZ]) + 1), (size_t)1, brz->mphf_fd);
 	nbytes = fwrite(&(brz->m), sizeof(brz->m), (size_t)1, brz->mphf_fd);
@@ -447,19 +428,16 @@ static int brz_gen_mphf(cmph_config_t *mph)
 			mphf_tmp = cmph_new(config);
 			if (mphf_tmp == NULL)
 			{
-				if(mph->verbosity) fprintf(stderr, "ERROR: Can't generate MPHF for bucket %u out of %u\n", cur_bucket + 1, brz->k);
+				cmph_logger.error("ERROR: Can't generate MPHF for bucket %u out of %u\n", cur_bucket + 1, brz->k);
 				error = 1;
 				cmph_config_destroy(config);
  				brz_destroy_keys_vd(keys_vd, nkeys_vd);
 				cmph_io_byte_vector_adapter_destroy(source);
 				break;
 			}
-			if(mph->verbosity)
-			{
-			  if (cur_bucket % 1000 == 0)
-  			  {
-			  	fprintf(stderr, "MPHF for bucket %u out of %u was generated.\n", cur_bucket + 1, brz->k);
-			  }
+
+			if (cur_bucket % 1000 == 0) {
+			  cmph_logger.info("MPHF for bucket %u out of %u was generated.\n", cur_bucket + 1, brz->k);
 			}
 			switch(brz->algo)
 			{

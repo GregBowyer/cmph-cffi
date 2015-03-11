@@ -11,6 +11,8 @@
 #include <string.h>
 // #define DEBUG
 #include "debug.h"
+#include "logging.h"
+
 #define UNASSIGNED 3U
 #define NULL_EDGE 0xffffffff
 
@@ -282,7 +284,6 @@ cmph_t *bdz_new(cmph_config_t *mph, double c)
 	ELAPSED_TIME_IN_SECONDS(&construction_time_begin);
 	#endif
 
-
 	if (c == 0) c = 1.23; // validating restrictions over parameter c.
 	DEBUGP("c: %f\n", c);
 	bdz->m = mph->key_source->nkeys;	
@@ -296,19 +297,15 @@ cmph_t *bdz_new(cmph_config_t *mph, double c)
 	bdz->ranktablesize = (cmph_uint32)ceil(bdz->n/(double)bdz->k);
 	DEBUGP("ranktablesize: %u\n", bdz->ranktablesize);
 
-	
 	bdz_alloc_graph3(&graph3, bdz->m, bdz->n);
 	bdz_alloc_queue(&edges,bdz->m);
 	DEBUGP("Created hypergraph\n");
-	
 	DEBUGP("m (edges): %u n (vertices): %u  r: %u c: %f \n", bdz->m, bdz->n, bdz->r, c);
 
 	// Mapping step
 	iterations = 1000;
-	if (mph->verbosity)
-	{
-		fprintf(stderr, "Entering mapping step for mph creation of %u keys with graph sized %u\n", bdz->m, bdz->n);
-	}
+	cmph_logger.info("Entering mapping step for mph creation of %u keys with graph sized %u\n", bdz->m, bdz->n);
+
 	while(1)
 	{
 		int ok;
@@ -323,10 +320,7 @@ cmph_t *bdz_new(cmph_config_t *mph, double c)
 			hash_state_destroy(bdz->hl);
 			bdz->hl = NULL;
 			DEBUGP("%u iterations remaining\n", iterations);
-			if (mph->verbosity)
-			{
-				fprintf(stderr, "acyclic graph creation failure - %u iterations remaining\n", iterations);
-			}
+			cmph_logger.info("acyclic graph creation failure - %u iterations remaining\n", iterations);
 			if (iterations == 0) break;
 		}
 		else break;
@@ -340,18 +334,12 @@ cmph_t *bdz_new(cmph_config_t *mph, double c)
 	}
 	bdz_partial_free_graph3(&graph3);
 	// Assigning step
-	if (mph->verbosity)
-	{
-		fprintf(stderr, "Entering assigning step for mph creation of %u keys with graph sized %u\n", bdz->m, bdz->n);
-	}
+	cmph_logger.info("Entering assigning step for mph creation of %u keys with graph sized %u\n", bdz->m, bdz->n);
 	assigning(bdz, &graph3, edges);
 
 	bdz_free_queue(&edges);
 	bdz_free_graph3(&graph3);
-	if (mph->verbosity)
-	{
-		fprintf(stderr, "Entering ranking step for mph creation of %u keys with graph sized %u\n", bdz->m, bdz->n);
-	}
+	cmph_logger.info("Entering ranking step for mph creation of %u keys with graph sized %u\n", bdz->m, bdz->n);
 	ranking(bdz);
 	#ifdef CMPH_TIMING
 	ELAPSED_TIME_IN_SECONDS(&construction_time);
@@ -374,12 +362,7 @@ cmph_t *bdz_new(cmph_config_t *mph, double c)
 	mphf->data = bdzf;
 	mphf->size = bdz->m;
 
-	DEBUGP("Successfully generated minimal perfect hash\n");
-	if (mph->verbosity)
-	{
-		fprintf(stderr, "Successfully generated minimal perfect hash function\n");
-	}
-
+	cmph_logger.info("Successfully generated minimal perfect hash function\n");
 
 	#ifdef CMPH_TIMING
 	register cmph_uint32 space_usage = bdz_packed_size(mphf)*8;
