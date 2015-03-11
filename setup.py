@@ -54,7 +54,7 @@ setup(
     author_email='gbowyer@fastmail.co.uk & venkatesh@urx.com',
     url='http://github.com/URXtech/cmph-cffi/',
     packages=['cmph'],
-    tests_require=['pytest', 'pytest-capturelog', 'python-coveralls'],
+    tests_require=['pytest', 'pytest-quickcheck', 'pytest-capturelog', 'python-coveralls'],
     install_requires=['cffi>=0.8', 'six'],
     cmdclass={
         'build': CFFIBuild,

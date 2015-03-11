@@ -52,3 +52,25 @@ def test_each_algo_defaults(tmpdir, algo):
     # Check that nothing untoward happens in __del__
     del mph
     del mph2
+
+
+@pytest.mark.randomize(algo=str, ncalls=2)
+def test_invalid_algo(algo):
+    if algo in cmph._ALGOS:
+        pytest.skip("Random algo is a known algo !")
+
+    with pytest.raises(ValueError):
+        test_data = _words
+        with open(test_data) as test_input:
+            mph = cmph.generate_hash(test_input, algorithm=algo)
+
+
+@pytest.mark.randomize(hash_fn=str, ncalls=2)
+def test_invalid_hash_fn(hash_fn):
+    if hash_fn in cmph._HASH_FNS:
+        pytest.skip("Random hash_fn is a known hash_fn !")
+
+    with pytest.raises(ValueError):
+        test_data = _words
+        with open(test_data) as test_input:
+            mph = cmph.generate_hash(test_input, hash_fns=(hash_fn))
