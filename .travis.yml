@@ -6,6 +6,8 @@ python:
     - 3.3
     - 3.4
     - "pypy"
+before_install:
+    - sudo pip install codecov
 install:
     - pip install cffi
     - pip install python-coveralls
@@ -14,5 +16,5 @@ script:
     - python setup.py install
     - coverage run --source=cmph setup.py test
     - coverage report -m
-after_script:
-    coveralls
+after_success:
+    codecov

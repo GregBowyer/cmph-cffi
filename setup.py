@@ -54,17 +54,17 @@ setup(
     author_email='gbowyer@fastmail.co.uk & venkatesh@urx.com',
     url='http://github.com/URXtech/cmph-cffi/',
     packages=['cmph'],
-    tests_require=['pytest', 'pytest-quickcheck', 'pytest-capturelog', 'python-coveralls'],
+    tests_require=[
+        'pytest',
+        'pytest-quickcheck',
+        'pytest-capturelog',
+        'pytest-cov'
+    ],
     install_requires=['cffi>=0.8', 'six'],
     cmdclass={
         'build': CFFIBuild,
         'install': CFFIInstall,
         'test': PyTest,
-    },
-    entry_points={
-        'console_scripts': [
-            'coveralls = coveralls:wear',
-        ],
     },
     setup_requires=['cffi>=0.8'],
     include_package_data=False,

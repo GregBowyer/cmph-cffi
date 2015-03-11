@@ -7,7 +7,7 @@ These bindings provide python with the ability to create and use
 
 -----
 
-|pypi| |build| |coverage|
+|pypi| |build| |coverage| |lint|
 
 -----
 
@@ -99,6 +99,7 @@ Please see `LICENSE <https://github.com/URXtech/cmph-cffi/blob/master/LICENSE>`_
 .. _CMPH: http://cmph.sourceforge.net/
 .. _these fine people: http://sourceforge.net/p/cmph/git/ci/master/tree/AUTHORS
 .. _Greg Bowyer: http://bonsaichicken.org
+.. _Venkatesh Sharma: https://github.com/venkateshks
 .. _@venkateshks: https://github.com/venkateshks
 .. _@GregBowyer: https://github.com/GregBowyer
 
@@ -110,6 +111,10 @@ Please see `LICENSE <https://github.com/URXtech/cmph-cffi/blob/master/LICENSE>`_
     :target: http://travis-ci.org/URXtech/cmph-cffi
     :alt: Build status 
 
-.. |coverage| image:: https://img.shields.io/coveralls/URXtech/cmph-cffi/master.svg?style=flat-square&label=coverage
-    :target: https://coveralls.io/r/URXtech/cmph-cffi
+.. |coverage| image:: https://img.shields.io/codecov/c/github/URXtech/cmph-cffi.svg
+    :target: https://codecov.io/github/URXtech/cmph-cffi
     :alt: Coverage
+
+.. |lint| image:: https://landscape.io/github/URXtech/cmph-cffi/master/landscape.svg?style=flat-square
+   :target: https://landscape.io/github/URXtech/cmph-cffi/master
+   :alt: Code Health
