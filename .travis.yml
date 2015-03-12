@@ -3,6 +3,7 @@ before_install:
     - sudo pip install codecov
 install:
     - sudo apt-get install pypy
+    - pip install tox
     - pip install cffi
 script:
     - python setup.py install
