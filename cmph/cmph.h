@@ -15,11 +15,11 @@ typedef struct __cmph_t cmph_t;
 
 typedef struct 
 {
-        void *data;
-        cmph_uint32 nkeys;
-        int (*read)(void *, char **, cmph_uint32 *);
-        void (*dispose)(void *, char *, cmph_uint32);
-        void (*rewind)(void *);
+    void *data;
+    cmph_uint32 nkeys;
+    int (*read)(void *, char **, cmph_uint32 *);
+    void (*dispose)(void *, char *, cmph_uint32);
+    void (*rewind)(void *);
 } cmph_io_adapter_t;
 
 /** Adapter pattern API **/

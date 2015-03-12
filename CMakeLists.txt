@@ -25,7 +25,10 @@ ADD_LIBRARY(hack
     cmph/hash.c
     cmph/jenkins_hash.c
     cmph/linear_string_map.c
+    cmph/logging.c
     cmph/miller_rabin.c
+    cmph/pyadapter.c
+    cmph/pylogging.c
     cmph/select.c
     cmph/vqueue.c
     cmph/vstack.c

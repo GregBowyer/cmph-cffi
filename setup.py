@@ -1,8 +1,6 @@
-import sys
 from setuptools import setup
 from setuptools.command.install import install
 from distutils.command.build import build
-from setuptools.command.test import test as TestCommand
 
 VERSION = (0, 1, 0)
 VERSION_STR = '.'.join([str(x) for x in VERSION])
@@ -41,7 +39,7 @@ setup(
         'build': CFFIBuild,
         'install': CFFIInstall,
     },
-    setup_requires=['cffi>=0.8'],
+    setup_requires=['cffi>=0.8', 'six'],
     include_package_data=False,
     zip_safe=False,
     package_data={'cmph': ['*.py', '*.c', '*.h']},

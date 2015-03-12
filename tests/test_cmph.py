@@ -55,6 +55,36 @@ def test_each_algo_defaults(tmpdir, algo):
     del mph2
 
 
+def test_str_input(tmpdir):
+    data = 'This is a string list test'.split()
+    mph = cmph.generate_hash(data)
+    out = tmpdir.ensure('out.mph')
+
+    with out.open('w') as test_output:
+        mph.save(test_output)
+
+    with out.open() as saved_mph:
+        mph2 = cmph.load_hash(saved_mph)
+
+    for word in data:
+        assert mph(word) == mph2(word)
+
+
+def test_str_input2(tmpdir):
+    data = open(_words).readlines()
+    mph = cmph.generate_hash(data)
+    out = tmpdir.ensure('out.mph')
+
+    with out.open('w') as test_output:
+        mph.save(test_output)
+
+    with out.open() as saved_mph:
+        mph2 = cmph.load_hash(saved_mph)
+
+    for word in data:
+        assert mph(word) == mph2(word)
+
+
 @given(str)
 def test_invalid_algo(algo):
     if algo in cmph._ALGOS:
@@ -63,7 +93,7 @@ def test_invalid_algo(algo):
     with pytest.raises(ValueError):
         test_data = _words
         with open(test_data) as test_input:
-            mph = cmph.generate_hash(test_input, algorithm=algo)
+            cmph.generate_hash(test_input, algorithm=algo)
 
 
 @given([str])
@@ -74,4 +104,4 @@ def test_invalid_hash_fn(hash_fns):
     with pytest.raises(ValueError):
         test_data = _words
         with open(test_data) as test_input:
-            mph = cmph.generate_hash(test_input, hash_fns=hash_fns)
+            cmph.generate_hash(test_input, hash_fns=hash_fns)

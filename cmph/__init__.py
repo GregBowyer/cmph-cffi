@@ -1,16 +1,23 @@
 __all__ = ['MPH', 'generate_hash', 'load_hash']
 
+from ._adapters import create_adapter
+
 from cffi import FFI
 from os.path import dirname
 from os.path import join as pthjoin
 from os.path import relpath
 from glob import glob
-from collections import Iterable
+from collections import namedtuple
+from contextlib import contextmanager
 import tempfile
 import logging
 import six
 
 logger = logging.getLogger(__name__)
+
+_DEBUG = False
+_COMPILER_ARGS = ['-ggdb'] if _DEBUG else []
+
 
 ffi = FFI()
 
@@ -77,6 +84,12 @@ ffi.cdef("""
 
     void _cmph_setup_py_logger(void (*_py_logger)(int, char*));
 
+    cmph_io_adapter_t *cmph_io_function_adapter(char*(*readfn)(),
+                                                void(*rewindfn)(),
+                                                void(*destroyfn)(),
+                                                cmph_uint32(*keylenfn)(),
+                                                cmph_uint32 nkeys);
+    void cmph_io_function_adapter_destroy(cmph_io_adapter_t * adapter);
 """)
 ffi.C = ffi.dlopen(None)
 
@@ -96,7 +109,10 @@ def _cmph_py_logger(level, message):
 
 _cmph = ffi.verify('''
 #include <cmph.h>
-''', sources=sources, include_dirs=[path])
+#include <pylogging.h>
+#include <pyadapter.h>
+''', sources=sources, include_dirs=[path],
+                   extra_compile_args=_COMPILER_ARGS)
 _cmph._cmph_setup_py_logger(_cmph_py_logger)
 
 _HASH_FNS = {
@@ -183,6 +199,7 @@ class MPH(object):
             The code for the given item
 
         """
+        assert self._mph
         return _cmph.cmph_search(self._mph, key, len(key))
 
     def __call__(self, key):
@@ -203,8 +220,17 @@ class MPH(object):
             return self.lookup(key)
 
     def __del__(self):
-        assert self._mph, "There is no MPH ?"
-        _cmph.cmph_destroy(self._mph)
+        if self._mph:
+            _cmph.cmph_destroy(self._mph)
+
+
+_cfg = namedtuple('mph_cfg', [
+    'algorithm', 'hash_fns', 'chd_keys_per_bin',
+    'chd_load_factor', 'fch_bits_per_key',
+    'num_graph_vertices', 'brz_memory_size',
+    'brz_temp_dir', 'brz_max_keys_per_bucket',
+    'bdz_precomputed_rank', 'chd_avg_keys_per_bucket'
+])
 
 
 def _range_check(name, lower, value, upper=None):
@@ -216,7 +242,76 @@ def _range_check(name, lower, value, upper=None):
             raise ValueError("Invalid parameter for %s" % name)
 
 
-def generate_hash(input, algorithm='chd_ph', hash_fns=(), chd_keys_per_bin=1,
+@contextmanager
+def _create_config(source, cfg):
+    algorithm = cfg.algorithm.lower()
+
+    if algorithm.lower() not in _ALGOS.keys():
+        raise ValueError("Invalid algorithm")
+
+    if cfg.hash_fns:
+        hash_fns = [fn.lower() for fn in cfg.hash_fns]
+        if any(fn not in _HASH_FNS.keys() for fn in hash_fns):
+            raise ValueError("Invalid internal hash fn")
+
+        if not all(bool(fn) for fn in hash_fns):
+            raise ValueError("Invalid internal hash fn")
+    else:
+        hash_fns = []
+
+    _range_check('chd_keys_per_bin', 1, cfg.chd_keys_per_bin, 128)
+    _range_check('brz_memory_size', 1, cfg.brz_memory_size)
+    _range_check('brz_max_keys_per_bucket', 64,
+                 cfg.brz_max_keys_per_bucket, 175)
+    _range_check('bdz_precomputed_rank', 3,
+                 cfg.bdz_precomputed_rank, 10)
+    _range_check('chd_avg_keys_per_bucket', 1,
+                 cfg.chd_avg_keys_per_bucket, 32)
+
+    config = _cmph.cmph_config_new(source)
+    _cmph.cmph_config_set_algo(config, _ALGOS[algorithm])
+
+    if algorithm in ('chd', 'chd_ph'):
+        if cfg.chd_load_factor is not None:
+            _range_check('chd_load_factor', 0, cfg.chd_load_factor)
+            _cmph.cmph_config_set_graphsize(config, cfg.chd_load_factor)
+        _cmph.cmph_config_set_keys_per_bin(config, cfg.chd_keys_per_bin)
+        _cmph.cmph_config_set_b(config, cfg.chd_avg_keys_per_bucket)
+        if cfg.num_graph_vertices:
+            _cmph.cmph_config_set_graphsize(config, cfg.num_graph_vertices)
+    elif algorithm == 'bdz':
+        _cmph.cmph_config_set_b(config, cfg.bdz_precomputed_rank)
+    elif algorithm == 'brz':
+        _cmph.cmph_config_set_b(config, cfg.brz_max_keys_per_bucket)
+        if not cfg.brz_temp_dir:
+            brz_temp_dir = tempfile.mkdtemp(suffix='cmph')
+        else:
+            brz_temp_dir = cfg.brz_temp_dir
+        _cmph.cmph_config_set_tmp_dir(config, brz_temp_dir)
+        _cmph.cmph_config_set_memory_availability(config, cfg.brz_memory_size)
+    elif algorithm == 'bmz':
+        if cfg.num_graph_vertices:
+            num_graph_vertices = cfg.num_graph_vertices
+            _range_check('num_graph_vertices', 1, num_graph_vertices)
+            if num_graph_vertices >= 2.0:
+                logging.warn("num_graph_vertices for bmz was given "
+                             "as >= 2, but forced to 1.15")
+                num_graph_vertices = 1.15
+            _cmph.cmph_config_set_graphsize(config, num_graph_vertices)
+    elif algorithm == 'chm':
+        if cfg.num_graph_vertices:
+            _range_check('num_graph_vertices', 1, cfg.num_graph_vertices)
+            _cmph.cmph_config_set_graphsize(config, cfg.num_graph_vertices)
+    elif algorithm == 'fch':
+        if cfg.fch_bits_per_key:
+            _range_check('fch_bits_per_key', 0, cfg.fch_bits_per_key)
+            _cmph.cmph_config_set_graphsize(config, cfg.fch_bits_per_key)
+
+    yield config
+    _cmph.cmph_config_destroy(config)
+
+
+def generate_hash(data, algorithm='chd_ph', hash_fns=(), chd_keys_per_bin=1,
                   chd_load_factor=None, fch_bits_per_key=None,
                   num_graph_vertices=None, brz_memory_size=8,
                   brz_temp_dir=None, brz_max_keys_per_bucket=128,
@@ -226,7 +321,7 @@ def generate_hash(input, algorithm='chd_ph', hash_fns=(), chd_keys_per_bin=1,
 
     Parameters
     ----------
-    input : Iterable
+    data : list, array-like, file-like
         The input that is used to generate the minimal perfect hash.
 
         Be aware, in most cases the input is expected to be distinct, and
@@ -385,82 +480,17 @@ def generate_hash(input, algorithm='chd_ph', hash_fns=(), chd_keys_per_bin=1,
         If the MPH generation fails
     """
 
-    algorithm = algorithm.lower()
+    cfg = _cfg(algorithm, hash_fns, chd_keys_per_bin, chd_load_factor,
+               fch_bits_per_key, num_graph_vertices, brz_memory_size,
+               brz_temp_dir, brz_max_keys_per_bucket, bdz_precomputed_rank,
+               chd_avg_keys_per_bucket)
 
-    if algorithm.lower() not in _ALGOS.keys():
-        raise ValueError("Invalid algorithm")
-
-    if hash_fns:
-        hash_fns = [fn.lower() for fn in hash_fns]
-        if any(fn not in _HASH_FNS.keys() for fn in hash_fns):
-            raise ValueError("Invalid internal hash fn")
-
-        if not all(bool(fn) for fn in hash_fns):
-            raise ValueError("Invalid internal hash fn")
-
-    _range_check('chd_keys_per_bin', 1, chd_keys_per_bin, 128)
-    _range_check('brz_memory_size', 1, brz_memory_size)
-    _range_check('brz_max_keys_per_bucket', 64,
-                 brz_max_keys_per_bucket, 175)
-    _range_check('bdz_precomputed_rank', 3,
-                 bdz_precomputed_rank, 10)
-    _range_check('chd_avg_keys_per_bucket', 1,
-                 chd_avg_keys_per_bucket, 32)
-
-    _is_nlfile = False
-    if hasattr(input, 'fileno'):
-        source = _cmph.cmph_io_nlfile_adapter(input)
-        _is_nlfile = True
-    elif isinstance(input, Iterable):
-        raise NotImplementedError("EEP")
-
-    config = _cmph.cmph_config_new(source)
-    _cmph.cmph_config_set_algo(config, _ALGOS[algorithm])
-
-    #_cmph.cmph_config_set_mphf_fd(config, mphf_fd)
-
-    if algorithm in ('chd', 'chd_ph'):
-        if chd_load_factor is not None:
-            _range_check('chd_load_factor', 0, chd_load_factor)
-            _cmph._cmph_config_set_graphsize(config, chd_load_factor)
-        _cmph.cmph_config_set_keys_per_bin(config, chd_keys_per_bin)
-        _cmph.cmph_config_set_b(config, chd_avg_keys_per_bucket)
-        if num_graph_vertices:
-            _cmph.cmph_config_set_graphsize(config, num_graph_vertices)
-    elif algorithm == 'bdz':
-        _cmph.cmph_config_set_b(config, bdz_precomputed_rank)
-    elif algorithm == 'brz':
-        _cmph.cmph_config_set_b(config, brz_max_keys_per_bucket)
-        if not brz_temp_dir:
-            brz_temp_dir = tempfile.mkdtemp(suffix='cmph')
-        _cmph.cmph_config_set_tmp_dir(config, brz_temp_dir)
-        _cmph.cmph_config_set_memory_availability(config, brz_memory_size)
-    elif algorithm == 'bmz':
-        if num_graph_vertices:
-            _range_check('num_graph_vertices', 1, num_graph_vertices)
-            if num_graph_vertices >= 2.0:
-                logging.warn("num_graph_vertices for bmz was given "
-                             "as >= 2, but forced to 1.15")
-                num_graph_vertices = 1.15
-            _cmph.cmph_config_set_graphsize(config, num_graph_vertices)
-    elif algorithm == 'chm':
-        if num_graph_vertices is not None:
-            _range_check('num_graph_vertices', 1, num_graph_vertices)
-            _cmph.cmph_config_set_graphsize(config, num_graph_vertices)
-    elif algorithm == 'fch':
-        if fch_bits_per_key:
-            _range_check('fch_bits_per_key', 0, fch_bits_per_key)
-            _cmph.cmph_config_set_graphsize(config, fch_bits_per_key)
-
-    try:
-        return MPH(_cmph.cmph_new(config))
-    except Exception as e:
-        raise e
-    finally:
-        _cmph.cmph_config_destroy(config)
-
-        if _is_nlfile:
-            _cmph.cmph_io_nlfile_adapter_destroy(source)
+    with create_adapter(_cmph, ffi, data) as source:
+        with _create_config(source, cfg) as config:
+            _mph = _cmph.cmph_new(config)
+            if not _mph:
+                raise RuntimeError("MPH generation failed")
+            return MPH(_mph)
 
 
 def load_hash(existing_mph):
