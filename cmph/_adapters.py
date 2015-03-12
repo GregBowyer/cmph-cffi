@@ -1,4 +1,5 @@
 from collections import Sequence
+from ._utils import is_file
 import logging
 import six
 
@@ -86,7 +87,7 @@ def _create_pyobj_adapter(cmph, ffi, obj):
 
     @ffi.callback('void()')
     def rewind_fn():
-        return pySideAdapter.rewind()
+        pySideAdapter.rewind()
 
     @ffi.callback('void()')
     def destroy_fn():
@@ -127,7 +128,16 @@ def create_adapter(cmph, ffi, obj):
     # if file
     # if buffer
 
-    if hasattr(obj, 'fileno'):
+    if is_file(obj):
+        # The FP is captured for GC reasons inside the dtor closure
+        fp = open(obj)
+        adapter = cmph.cmph_io_nlfile_adapter(fp)
+
+        def dtor():
+            cmph.cmph_io_nlfile_adapter_destroy(adapter)
+            fp.close()
+        return _AdapterCxt(adapter, dtor)
+    elif hasattr(obj, 'fileno'):
         adapter = cmph.cmph_io_nlfile_adapter(obj)
         dtor = lambda: cmph.cmph_io_nlfile_adapter_destroy(adapter)
         return _AdapterCxt(adapter, dtor)

@@ -85,6 +85,18 @@ def test_str_input2(tmpdir):
         assert mph(word) == mph2(word)
 
 
+def test_filename_usage(tmpdir):
+    mph = cmph.generate_hash(_words)
+    out = tmpdir.ensure('out.mph')
+    mph.save(out.strpath)
+
+    mph2 = cmph.load_hash(out.strpath)
+
+    with open(_words) as test_input:
+        for word in test_input:
+            assert mph(word) == mph2(word)
+
+
 @given(str)
 def test_invalid_algo(algo):
     if algo in cmph._ALGOS:

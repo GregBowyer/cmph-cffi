@@ -1,11 +1,11 @@
 __all__ = ['MPH', 'generate_hash', 'load_hash']
 
 from ._adapters import create_adapter
+from ._utils import is_file
 
 from cffi import FFI
-from os.path import dirname
 from os.path import join as pthjoin
-from os.path import relpath
+from os.path import relpath, abspath, dirname
 from glob import glob
 from collections import namedtuple
 from contextlib import contextmanager
@@ -184,7 +184,11 @@ class MPH(object):
             stream
         """
         assert self._mph, "There is no MPH ?"
-        _cmph.cmph_dump(self._mph, output)
+        if isinstance(output, six.string_types):
+            with open(abspath(output), 'w') as out:
+                _cmph.cmph_dump(self._mph, out)
+        else:
+            _cmph.cmph_dump(self._mph, output)
 
     def lookup(self, key):
         """Generate hash code for a key from the Minimal Perfect Hash (MPH)
@@ -499,9 +503,9 @@ def load_hash(existing_mph):
 
     Parameters
     ----------
-    existing_mph : file_like
+    existing_mph : file_like, string
         An input stream that is file like, and able to load
-        a preexisting MPH
+        a preexisting MPH, or the filename representing it.
 
     Raises
     ------
@@ -514,6 +518,13 @@ def load_hash(existing_mph):
     MPH
         A MPH wrapper class
     """
-    assert hasattr(existing_mph, 'fileno'), "Input is not a file ?"
-    _mph = _cmph.cmph_load(existing_mph)
+    if is_file(existing_mph):
+        with open(abspath(existing_mph)) as hash_table:
+            _mph = _cmph.cmph_load(hash_table)
+    elif hasattr(existing_mph, 'fileno'):
+        _mph = _cmph.cmph_load(existing_mph)
+
+    if not _mph:
+        raise IOError("Unable to load an MPH from the given source")
+
     return MPH(_mph)
