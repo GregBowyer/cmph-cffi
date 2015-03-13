@@ -2,7 +2,7 @@ from setuptools import setup
 from setuptools.command.install import install
 from distutils.command.build import build
 
-VERSION = (0, 1, 0)
+VERSION = (0, 2, 0)
 VERSION_STR = '.'.join([str(x) for x in VERSION])
 
 
