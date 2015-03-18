@@ -1,7 +1,7 @@
 import six
 from os.path import abspath, exists
 
-unicode = str if six.PY3 else unicode
+unicode = str if six.PY3 else unicode # noqa
 
 
 unicode = str if six.PY3 else unicode  # noqa

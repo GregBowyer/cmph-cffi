@@ -62,6 +62,7 @@ import tempfile
 import logging
 import six
 
+# pylint: disable=invalid-name
 logger = logging.getLogger(__name__)
 
 _DEBUG = True
@@ -162,7 +163,10 @@ _cmph = ffi.verify('''
 #include <pyadapter.h>
 ''', sources=sources, include_dirs=[path],
                    extra_compile_args=_COMPILER_ARGS)
+# pylint: disable=protected-access
 _cmph._cmph_setup_py_logger(_cmph_py_logger)  # noqa
+# pylint: enable=protected-access
+# pylint: enable=invalid-name
 
 _HASH_FNS = {
     'jenkins': _cmph.CMPH_HASH_JENKINS,
@@ -296,14 +300,15 @@ _cfg = namedtuple('mph_cfg', [
 
 def _range_check(name, lower, value, upper=None):
     if upper:
-        if not (lower <= value <= upper):
+        if not lower <= value <= upper:
             raise ValueError("Invalid parameter for %s" % name)
     else:
-        if not (lower <= value):
+        if not lower <= value:
             raise ValueError("Invalid parameter for %s" % name)
 
 
 @contextmanager
+# pylint:disable=too-many-branches
 def _create_config(source, cfg):
     algorithm = cfg.algorithm.lower()
 
@@ -311,8 +316,8 @@ def _create_config(source, cfg):
         raise ValueError("Invalid algorithm")
 
     if algorithm.lower() in _DANGEROUS_ALGOS:
-        logging.warn('The choosen algorithm (%s) is currently'
-                     'known to segfault, YMMV' % algorithm)
+        logging.warn('The choosen algorithm (%s) is currently '
+                     'known to segfault, YMMV', algorithm)
     if cfg.hash_fns:
         hash_fns = [fn.lower() for fn in cfg.hash_fns]
         if any(fn not in _HASH_FNS.keys() for fn in hash_fns):
@@ -375,6 +380,8 @@ def _create_config(source, cfg):
     _cmph.cmph_config_destroy(config)
 
 
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-locals
 def generate_hash(data, algorithm='chd_ph', hash_fns=(), chd_keys_per_bin=1,
                   chd_load_factor=None, fch_bits_per_key=None,
                   num_graph_vertices=None, brz_memory_size=8,

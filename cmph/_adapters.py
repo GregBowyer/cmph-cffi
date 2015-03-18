@@ -3,9 +3,12 @@ from ._utils import is_file, is_file_location, convert_to_bytes
 import logging
 
 
+# pylint: disable=invalid-name
 logger = logging.getLogger(__name__)
+# pylint: enable=invalid-name
 
 
+# pylint: disable=too-many-instance-attributes
 class _PythonListAdapter(object):
 
     def __init__(self, data, encoding='utf8'):
@@ -116,6 +119,7 @@ def create_adapter(cmph, ffi, obj):
 
     if is_file_location(obj):
         # The FP is captured for GC reasons inside the dtor closure
+        # pylint: disable=invalid-name
         fd = open(obj)
         adapter = cmph.cmph_io_nlfile_adapter(fd)
 
