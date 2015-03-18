@@ -2,9 +2,12 @@ language: python
 before_install:
     - sudo pip install codecov
 install:
+    - sudo apt-get install gdb
     - sudo apt-get install pypy
     - pip install tox
     - pip install cffi
+before_script:
+    - ulimit -c unlimited -S
 script:
     - python setup.py install
     - tox
