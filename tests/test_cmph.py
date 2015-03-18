@@ -3,10 +3,16 @@ logging.basicConfig(level=logging.DEBUG)
 import cmph
 import os
 import pytest
+import six
+import math
+from cmph._utils import convert_to_bytes
+from collections import Counter
 from hypothesis import given, assume
+from random import Random
 
 _words = os.path.join(os.path.dirname(__file__), 'words')
 _words8 = os.path.join(os.path.dirname(__file__), 'words8')
+unicrud_type = str if six.PY3 else unicode
 
 
 def test_simple_usage(tmpdir):
@@ -95,6 +101,30 @@ def test_filename_usage(tmpdir):
     with open(_words) as test_input:
         for word in test_input:
             assert mph(word) == mph2(word)
+
+
+def _entropy(strs):
+    p, lns = Counter(strs), float(len(strs))
+    return -sum(x / lns * math.log(x) for x in p.values())
+
+
+@given([unicrud_type])
+def test_unicode_input(unicrud):
+    unicrud = list(set(unicrud))
+    assume(len(unicrud) > 5)
+
+    # MPH is an entropy game, hence things with low-entropy will
+    # confuse the hash algorithms preventing convergence on a
+    # solution, making this test fail
+    assume(_entropy(unicrud) == -0.0)
+
+    mph = cmph.generate_hash(unicrud)
+
+    # ... break the encapsulation, knowing that we
+    # do this under the hood
+    test_strs = [convert_to_bytes(s) for s in unicrud]
+    for original, escaped in zip(unicrud, test_strs):
+        assert mph(escaped) == mph(original)
 
 
 @given(str)

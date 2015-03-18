@@ -1,7 +1,56 @@
-__all__ = ['MPH', 'generate_hash', 'load_hash']
+"""
+CMPH
+====
+
+Library for the generation of minimal perfect hashes (MPH).
+An MPH is a hash-table that has no collisions and uses the least amount of
+space possible to store an ancillary information required to provide
+hashcodes.
+
+This can be useful for hashing large numbers of items, into a small amount of
+space, preventing roundtrips, reducing network hops etc.
+
+Usage
+=====
+
+Creating a new MPH
+
+.. code-block:: python
+
+    import cmph
+    with open('/usr/share/dict/words', 'w') as keys:
+        mph = cmph.generate_hash(keys)
+
+Getting keys out of an MPH
+
+.. code-block:: python
+
+    mph('Test')
+
+.. warning:: Be aware that whilst MPH's are awesome, they typically cannot
+   distinguish between keys they are built on and unseen keys. Concretely this
+   means that feeding in keys that are not in the original key set will have
+   **undefined results**
+
+Saving the MPH
+
+.. code-block:: python
+
+    with open('/tmp/out.mph', 'w') as out_file:
+        mph.save(out_file)
+
+Loading a pre-existing MPH
+
+.. code-block:: python
+
+    with open('/tmp/out.mph') as in_file:
+        cmph.load_hash(in_file)
+"""
+
+__all__ = ('MPH', 'generate_hash', 'load_hash')
 
 from ._adapters import create_adapter
-from ._utils import is_file
+from ._utils import is_file, is_file_location, convert_to_bytes
 
 from cffi import FFI
 from os.path import join as pthjoin
@@ -15,7 +64,7 @@ import six
 
 logger = logging.getLogger(__name__)
 
-_DEBUG = False
+_DEBUG = True
 _COMPILER_ARGS = ['-ggdb'] if _DEBUG else []
 
 
@@ -113,7 +162,7 @@ _cmph = ffi.verify('''
 #include <pyadapter.h>
 ''', sources=sources, include_dirs=[path],
                    extra_compile_args=_COMPILER_ARGS)
-_cmph._cmph_setup_py_logger(_cmph_py_logger)
+_cmph._cmph_setup_py_logger(_cmph_py_logger)  # noqa
 
 _HASH_FNS = {
     'jenkins': _cmph.CMPH_HASH_JENKINS,
@@ -132,9 +181,11 @@ _ALGOS = {
     'chd': _cmph.CMPH_CHD,
 }
 
+_DANGEROUS_ALGOS = ('bmz', 'bmz8', 'fch', 'brz')
 
 class MPH(object):
-    """ Wrapper class that maintains a Minimal Perfect Hash (MPH)
+    """
+    Wrapper class that maintains a Minimal Perfect Hash (MPH)
 
     There are many ways to use an MPH, typically given a pre-constructed
     MPH, you make lookups on the MPH to get the relevant hashcode for
@@ -170,7 +221,8 @@ class MPH(object):
         self._mph = mph
 
     def save(self, output):
-        """ Persist the Minimal Perfect Hash (MPH) to a stream
+        """
+        Persist the Minimal Perfect Hash (MPH) to a stream
 
         Parameters
         ----------
@@ -191,7 +243,8 @@ class MPH(object):
             _cmph.cmph_dump(self._mph, output)
 
     def lookup(self, key):
-        """Generate hash code for a key from the Minimal Perfect Hash (MPH)
+        """
+        Generate hash code for a key from the Minimal Perfect Hash (MPH)
 
         Parameters
         ----------
@@ -204,10 +257,17 @@ class MPH(object):
 
         """
         assert self._mph
-        return _cmph.cmph_search(self._mph, key, len(key))
+        key = convert_to_bytes(key)
+        box = ffi.new('char[]', key)
+        try:
+            result = _cmph.cmph_search(self._mph, box, len(key))
+            return result
+        finally:
+            del box
 
     def __call__(self, key):
-        """Generate hash code for a key from the Minimal Perfect Hash (MPH)
+        """
+        Generate hash code for a key from the Minimal Perfect Hash (MPH)
 
         Parameters
         ----------
@@ -218,10 +278,7 @@ class MPH(object):
             The code for the given item
 
         """
-        if six.PY3 and type(key) in six.string_types:
-            return self.lookup(key.encode('utf8'))
-        else:
-            return self.lookup(key)
+        return self.lookup(key)
 
     def __del__(self):
         if self._mph:
@@ -253,6 +310,9 @@ def _create_config(source, cfg):
     if algorithm.lower() not in _ALGOS.keys():
         raise ValueError("Invalid algorithm")
 
+    if algorithm.lower() in _DANGEROUS_ALGOS:
+        logging.warn('The choosen algorithm (%s) is currently'
+                     'known to segfault, YMMV' % algorithm)
     if cfg.hash_fns:
         hash_fns = [fn.lower() for fn in cfg.hash_fns]
         if any(fn not in _HASH_FNS.keys() for fn in hash_fns):
@@ -498,7 +558,8 @@ def generate_hash(data, algorithm='chd_ph', hash_fns=(), chd_keys_per_bin=1,
 
 
 def load_hash(existing_mph):
-    """Load a Minimal Perfect Hash (MPH)
+    """
+    Load a Minimal Perfect Hash (MPH)
     Given an input stream, this will load a minimal perfect hash
 
     Parameters
@@ -518,10 +579,10 @@ def load_hash(existing_mph):
     MPH
         A MPH wrapper class
     """
-    if is_file(existing_mph):
+    if is_file_location(existing_mph):
         with open(abspath(existing_mph)) as hash_table:
             _mph = _cmph.cmph_load(hash_table)
-    elif hasattr(existing_mph, 'fileno'):
+    elif is_file(existing_mph):
         _mph = _cmph.cmph_load(existing_mph)
 
     if not _mph:
