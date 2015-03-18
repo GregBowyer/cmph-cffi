@@ -81,6 +81,12 @@ created these bindings and `these fine people`_ did all the hard implementation
 work in CMPH_.
 
 
+==============
+Reporting bugs
+==============
+Please see `BUG_REPORTS <https://github.com/URXtech/cmph-cffi/blob/master/BUG_REPORTS.rst>`_.
+
+
 ==========
 Contribute
 ==========
