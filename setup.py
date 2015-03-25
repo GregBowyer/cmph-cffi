@@ -2,7 +2,7 @@ from setuptools import setup
 from setuptools.command.install import install
 from distutils.command.build import build
 
-__VERSION__ = '0.2.0'
+__VERSION__ = '0.3.0'
 
 
 def get_ext_modules():

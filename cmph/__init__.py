@@ -142,7 +142,7 @@ ffi.cdef("""
     void cmph_io_function_adapter_destroy(cmph_io_adapter_t * adapter);
 """)
 
-__VERSION__ = '0.2.0'
+__VERSION__ = '0.3.0'
 
 ffi.C = ffi.dlopen(None)
 
