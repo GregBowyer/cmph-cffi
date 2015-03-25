@@ -2,8 +2,7 @@ from setuptools import setup
 from setuptools.command.install import install
 from distutils.command.build import build
 
-VERSION = (0, 2, 0)
-VERSION_STR = '.'.join([str(x) for x in VERSION])
+__VERSION__ = '0.2.0'
 
 
 def get_ext_modules():
@@ -25,7 +24,7 @@ class CFFIInstall(install):
 
 setup(
     name='cmph-cffi',
-    version=VERSION_STR,
+    version=__VERSION__,
     description='CFFI enabled bindings to the CMPH library for' +
                 'creating and using minimal perfect hashes',
     long_description=open('README.rst', 'r').read(),

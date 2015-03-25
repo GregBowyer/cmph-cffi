@@ -141,6 +141,9 @@ ffi.cdef("""
                                                 cmph_uint32 nkeys);
     void cmph_io_function_adapter_destroy(cmph_io_adapter_t * adapter);
 """)
+
+__VERSION__ = '0.2.0'
+
 ffi.C = ffi.dlopen(None)
 
 path = dirname(__file__)
