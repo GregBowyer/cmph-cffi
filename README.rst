@@ -31,7 +31,7 @@ The **latest development version** can be installed directly from GitHub:
 
 .. code-block:: bash
 
-    $ pip install --upgrade 'git+https://github.com/URXtech/cmph-cffi'
+    $ pip install --upgrade 'git+https://github.com/GregBowyer/cmph-cffi'
 
 
 =====
@@ -84,21 +84,21 @@ CMPH_.
 ==============
 Reporting bugs
 ==============
-Please see `BUG_REPORTS <https://github.com/URXtech/cmph-cffi/blob/master/BUG_REPORTS.rst>`_.
+Please see `BUG_REPORTS <https://github.com/GregBowyer/cmph-cffi/blob/master/BUG_REPORTS.rst>`_.
 
 
 ==========
 Contribute
 ==========
 
-Please see `CONTRIBUTING <https://github.com/URXtech/cmph-cffi/blob/master/CONTRIBUTING.rst>`_.
+Please see `CONTRIBUTING <https://github.com/GregBowyer/cmph-cffi/blob/master/CONTRIBUTING.rst>`_.
 
 
 =======
 Licence
 =======
 
-Please see `LICENSE <https://github.com/URXtech/cmph-cffi/blob/master/LICENSE>`_.
+Please see `LICENSE <https://github.com/GregBowyer/cmph-cffi/blob/master/LICENSE>`_.
 
 
 .. _Minimal Perfect Hashes: http://en.wikipedia.org/wiki/Perfect_hash_function#Minimal_perfect_hash_function
@@ -113,14 +113,14 @@ Please see `LICENSE <https://github.com/URXtech/cmph-cffi/blob/master/LICENSE>`_
     :target: https://pypi.python.org/pypi/cmph-cffi
     :alt: Latest version released on PyPi
 
-.. |build| image:: https://img.shields.io/travis/URXtech/cmph-cffi/master.svg?style=flat-square&label=build
-    :target: http://travis-ci.org/URXtech/cmph-cffi
+.. |build| image:: https://img.shields.io/travis/GregBowyer/cmph-cffi/master.svg?style=flat-square&label=build
+    :target: http://travis-ci.org/GregBowyer/cmph-cffi
     :alt: Build status 
 
-.. |coverage| image:: https://img.shields.io/codecov/c/github/URXtech/cmph-cffi.svg
-    :target: https://codecov.io/github/URXtech/cmph-cffi
+.. |coverage| image:: https://img.shields.io/codecov/c/github/GregBowyer/cmph-cffi.svg
+    :target: https://codecov.io/github/GregBowyer/cmph-cffi
     :alt: Coverage
 
-.. |lint| image:: https://landscape.io/github/URXtech/cmph-cffi/master/landscape.svg?style=flat-square
-   :target: https://landscape.io/github/URXtech/cmph-cffi/master
+.. |lint| image:: https://landscape.io/github/GregBowyer/cmph-cffi/master/landscape.svg?style=flat-square
+   :target: https://landscape.io/github/GregBowyer/cmph-cffi/master
    :alt: Code Health
