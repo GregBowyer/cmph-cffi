@@ -46,13 +46,6 @@ Loading a pre-existing MPH
     with open('/tmp/out.mph') as in_file:
         cmph.load_hash(in_file)
 """
-
-__all__ = ('MPH', 'generate_hash', 'load_hash')
-
-from ._adapters import create_adapter
-from ._utils import is_file, is_file_location, convert_to_bytes
-
-from cffi import FFI
 from os.path import join as pthjoin
 from os.path import relpath, abspath, dirname
 from glob import glob
@@ -60,6 +53,11 @@ from collections import namedtuple
 from contextlib import contextmanager
 import tempfile
 import logging
+
+from cmph.adapters import create_adapter
+from cmph.utils import is_file, is_file_location, convert_to_bytes
+
+from cffi import FFI
 import six
 
 # pylint: disable=invalid-name
@@ -599,3 +597,7 @@ def load_hash(existing_mph):
         raise IOError("Unable to load an MPH from the given source")
 
     return MPH(_mph)
+
+
+__all__ = ('MPH', 'generate_hash', 'load_hash')
+

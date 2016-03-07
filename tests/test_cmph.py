@@ -5,7 +5,7 @@ import os
 import pytest
 import six
 import math
-from cmph._utils import convert_to_bytes
+from cmph.utils import convert_to_bytes
 from collections import Counter
 from hypothesis import given, assume
 from random import Random

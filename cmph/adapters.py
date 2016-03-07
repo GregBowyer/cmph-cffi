@@ -1,7 +1,7 @@
-from collections import Sequence
-from ._utils import is_file, is_file_location, convert_to_bytes
 import logging
+from collections import Sequence
 
+from cmph.utils import convert_to_bytes, is_file, is_file_location
 
 # pylint: disable=invalid-name
 logger = logging.getLogger(__name__)
