@@ -8,11 +8,11 @@ import math
 from cmph.utils import convert_to_bytes
 from collections import Counter
 from hypothesis import given, assume
+from hypothesis.strategies import text, lists
 from random import Random
 
 _words = os.path.join(os.path.dirname(__file__), 'words')
 _words8 = os.path.join(os.path.dirname(__file__), 'words8')
-unicrud_type = str if six.PY3 else unicode
 
 
 def test_simple_usage(tmpdir):
@@ -108,7 +108,7 @@ def _entropy(strs):
     return -sum(x / lns * math.log(x) for x in p.values())
 
 
-@given([unicrud_type])
+@given(text())
 def test_unicode_input(unicrud):
     unicrud = list(set(unicrud))
     assume(len(unicrud) > 5)
@@ -127,7 +127,7 @@ def test_unicode_input(unicrud):
         assert mph(escaped) == mph(original)
 
 
-@given(str)
+@given(text())
 def test_invalid_algo(algo):
     if algo in cmph._ALGOS:
         pytest.skip("Random algo is a known algo !")
@@ -138,7 +138,7 @@ def test_invalid_algo(algo):
             cmph.generate_hash(test_input, algorithm=algo)
 
 
-@given([str])
+@given(lists(text()))
 def test_invalid_hash_fn(hash_fns):
     assume(len(hash_fns) > 1)
     assume(any(fn not in cmph._HASH_FNS for fn in hash_fns))
