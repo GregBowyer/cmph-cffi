@@ -76,9 +76,9 @@ Authors
 =======
 
 
-`Greg Bowyer`_ (`@GregBowyer`_) and `Venkatesh Sharma`_ (`@Venkateshks`_)
-created these bindings and `these fine people`_ did all the hard implementation
-work in CMPH_.
+`Greg Bowyer`_ (`@GregBowyer`_) created these bindings and
+`these fine people`_ did all the hard implementation work in
+CMPH_.
 
 
 ==============

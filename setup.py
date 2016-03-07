@@ -28,9 +28,9 @@ setup(
     description='CFFI enabled bindings to the CMPH library for' +
                 'creating and using minimal perfect hashes',
     long_description=open('README.rst', 'r').read(),
-    author='Greg Bowyer & Venkatesh Sharma',
-    author_email='gbowyer@fastmail.co.uk & venkatesh@urx.com',
-    url='http://github.com/URXtech/cmph-cffi/',
+    author='Greg Bowyer',
+    author_email='gbowyer@fastmail.co.uk',
+    url='http://github.com/GregBowyer/cmph-cffi/',
     packages=['cmph'],
     tests_require=['tox'],
     install_requires=['cffi>=0.8', 'six'],
