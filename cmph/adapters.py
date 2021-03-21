@@ -1,4 +1,5 @@
 import logging
+from array import array
 from collections import Sequence
 
 from cmph.utils import convert_to_bytes, is_file, is_file_location
@@ -133,7 +134,7 @@ def create_adapter(cmph, ffi, obj):
         adapter = cmph.cmph_io_nlfile_adapter(obj)
         dtor = lambda: cmph.cmph_io_nlfile_adapter_destroy(adapter)
         return _AdapterCxt(adapter, dtor)
-    elif isinstance(obj, Sequence):
+    elif isinstance(obj, Sequence) or isinstance(obj, array):
         if len(obj) == 0:
             raise ValueError("An empty sequence is already a perfect hash!")
         return _create_pyobj_adapter(cmph, ffi, obj)
